@@ -6,7 +6,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const body = await req.json();
-    const { stageName, totalModules, startDate, endDate, doneModules } = body;
+    const { stageName, totalModules, startDate, endDate, doneModules, totalWords } = body;
 
     const subject = await prisma.subject.update({
       where: { id },
@@ -28,6 +28,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             subjectId: id,
             modulesDone: diff,
             note: '系统校准进度',
+            date: format(new Date(), 'yyyy-MM-dd')
+          }
+        });
+      }
+    }
+
+    if (totalWords !== undefined && subject.subjectType === 'ENGLISH') {
+      const records = await prisma.record.findMany({ where: { subjectId: id } });
+      const currentSum = records.reduce((acc, r) => acc + (r.wordsCount || 0), 0);
+      const diff = Number(totalWords) - currentSum;
+      if (diff !== 0) {
+        await prisma.record.create({
+          data: {
+            subjectId: id,
+            wordsCount: diff,
+            note: '系统校准单词数',
             date: format(new Date(), 'yyyy-MM-dd')
           }
         });

@@ -147,8 +147,8 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-col md:flex-row w-full h-full">
-      <section className="w-full md:w-[45%] bg-surface p-6 md:p-8 pt-8 md:pt-12 overflow-y-auto">
-        <header className="mb-6 flex justify-between items-end">
+      <section className="w-full md:w-[45%] bg-surface p-4 md:p-6 pt-6 md:pt-8 overflow-y-auto">
+        <header className="mb-4 flex justify-between items-end">
           <div>
             <h2 className="font-headline font-extrabold text-3xl text-on-surface tracking-tight">{format(currentMonth, 'yyyy年M月')}</h2>
             <p className="text-on-surface-variant font-medium mt-1">坚持学习，稳步向前</p>
@@ -174,7 +174,7 @@ export default function CalendarPage() {
           {renderCalendarDays()}
         </div>
         
-        <div className="mt-6 p-5 bg-surface-container-low rounded-[24px]">
+        <div className="mt-4 p-5 bg-surface-container-low rounded-[24px]">
           <h3 className="font-headline font-bold text-primary mb-3">本月追踪</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10">
@@ -189,8 +189,8 @@ export default function CalendarPage() {
         </div>
       </section>
 
-      <section className="w-full md:w-[55%] bg-surface-container-low p-6 md:p-8 pt-6 md:pt-12 border-t md:border-t-0 md:border-l border-outline-variant/20 overflow-y-auto">
-        <div className="flex items-center gap-4 mb-6">
+      <section className="w-full md:w-[55%] bg-surface-container-low p-4 md:p-6 pt-6 md:pt-8 border-t md:border-t-0 md:border-l border-outline-variant/20 overflow-y-auto">
+        <div className="flex items-center gap-4 mb-4">
           <h2 className="font-headline font-bold text-2xl tracking-tight text-on-surface">{format(selectedDate, 'M月d日')}</h2>
           {isSameDay(selectedDate, new Date()) && (
             <span className="bg-primary-container text-on-primary-container text-xs px-3 py-1 rounded-full font-bold">今天</span>
@@ -198,7 +198,7 @@ export default function CalendarPage() {
         </div>
 
         {/* English Card */}
-        <div className="bg-surface-container-lowest p-5 rounded-[24px] mb-6 shadow-sm">
+        <div className="bg-surface-container-lowest p-5 rounded-[24px] mb-4 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <span className="p-2 bg-secondary-container text-on-secondary-container rounded-lg"><Languages size={20} /></span>
@@ -232,7 +232,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Subject Card */}
-        <div className="bg-surface-container-lowest p-5 rounded-[24px] mb-6 shadow-sm">
+        <div className="bg-surface-container-lowest p-5 rounded-[24px] mb-4 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <span className="p-2 bg-primary/10 text-primary rounded-lg"><LineChart size={20} /></span>
             <h3 className="font-headline font-bold text-lg text-on-surface">专业课进报</h3>
