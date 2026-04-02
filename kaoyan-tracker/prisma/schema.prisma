@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 科目实体
+model Subject {
+  id           String   @id @default(cuid())
+  name         String   // 科目名称，如：高等数学
+  stageName    String   // 当前阶段名称，如：一轮复习
+  totalModules Int      // 总模块数或章节数
+  subjectType  String   // 类型：'PROFESSIONAL' (专业课) 或 'ENGLISH' (英语)
+  startDate    String?  // 选填：开始日期 'YYYY-MM-DD'
+  endDate      String?  // 选填：结束死线 'YYYY-MM-DD'
+  records      Record[]
+  chapters     Chapter[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// 打卡记录流水
+model Record {
+  id           String   @id @default(cuid())
+  subjectId    String
+  subject      Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  
+  // 针对专业课
+  modulesDone  Float?   // 本次上报完成的模块数
+  note         String?  // 选填备注
+  
+  // 针对英语
+  wordsCount   Int?     // 背诵单词量
+  studyMinutes Int?     // 学习时长(分钟)
+  
+  date         String   // 打卡日期, 格式 'YYYY-MM-DD'，方便日历高亮查询
+  createdAt    DateTime @default(now())
+}
+
+// 挂载在专业课下的章节维度（用于高等数学基础篇）
+model Chapter {
+  id           String   @id @default(cuid())
+  subjectId    String
+  subject      Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  
+  order        Int      // 排序: 1 ~ 9
+  title        String   // 名字: '第 1 章'
+  
+  hasMCQ       Boolean  @default(false)  // 选择题完成
+  hasFIB       Boolean  @default(false)  // 填空题完成
+  hasComp      Boolean  @default(false)  // 大题完成
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
