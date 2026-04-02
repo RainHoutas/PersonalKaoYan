@@ -146,7 +146,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <>
+    <div className="flex flex-col md:flex-row w-full h-full">
       <section className="w-full md:w-[45%] bg-surface p-6 md:p-8 pt-8 md:pt-12 overflow-y-auto">
         <header className="mb-6 flex justify-between items-end">
           <div>
@@ -300,6 +300,6 @@ export default function CalendarPage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

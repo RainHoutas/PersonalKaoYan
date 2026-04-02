@@ -45,6 +45,9 @@ export default function Dashboard() {
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
   const [newStageName, setNewStageName] = useState('');
   const [newTotalModules, setNewTotalModules] = useState<number>(0);
+  const [newStartDate, setNewStartDate] = useState('');
+  const [newEndDate, setNewEndDate] = useState('');
+  const [newDoneModules, setNewDoneModules] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -67,6 +70,9 @@ export default function Dashboard() {
     setEditingSubject(sub);
     setNewStageName(sub.stageName);
     setNewTotalModules(sub.totalModules);
+    setNewStartDate(sub.startDate || '');
+    setNewEndDate(sub.endDate || '');
+    setNewDoneModules(sub.doneModules);
   };
 
   const handleUpdate = async () => {
@@ -78,7 +84,10 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           stageName: newStageName,
-          totalModules: newTotalModules
+          totalModules: newTotalModules,
+          startDate: newStartDate,
+          endDate: newEndDate,
+          doneModules: newDoneModules
         })
       });
       await fetchData();
@@ -200,13 +209,18 @@ export default function Dashboard() {
                         )}
                       </div>
                       {/* 进度条 */}
-                      <div className="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+                      <div className="relative h-4 w-full bg-surface-container rounded-[12px] overflow-hidden shrink-0 mt-1">
                         <div
-                          className={`h-full rounded-full transition-all duration-700 ease-out ${
+                          className={`absolute top-0 left-0 h-full rounded-[12px] transition-all duration-700 ease-out ${
                             sub.isWaiting ? 'bg-outline-variant' : 'bg-gradient-to-r from-primary to-primary-container'
                           }`}
                           style={{ width: `${sub.progressPercent}%` }}
                         />
+                        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold font-headline select-none z-10 mix-blend-screen text-white pointer-events-none drop-shadow-md">
+                          {sub.subjectType === 'PROFESSIONAL' 
+                            ? `${sub.doneModules} / ${sub.totalModules} 进度` 
+                            : `${sub.totalWords} / 5666 单词`}
+                        </div>
                       </div>
 
                       {/* 如果存在章节细分，展示分段进度排布 */}
@@ -299,16 +313,48 @@ export default function Dashboard() {
               </div>
 
               {editingSubject.subjectType === 'PROFESSIONAL' && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">单阶段总模块数</label>
-                  <input 
-                    type="number" 
-                    value={newTotalModules}
-                    onChange={(e) => setNewTotalModules(Number(e.target.value))}
-                    className="bg-surface-container-high border-none rounded-xl p-4 focus:ring-2 focus:ring-primary/50 focus:bg-surface-container-lowest transition-all outline-none text-on-surface"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">总模块数</label>
+                    <input 
+                      type="number" 
+                      value={newTotalModules}
+                      onChange={(e) => setNewTotalModules(Number(e.target.value))}
+                      className="bg-surface-container-high border-none rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:bg-surface-container-lowest transition-all outline-none text-on-surface"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">当前已完成</label>
+                    <input 
+                      type="number" 
+                      value={newDoneModules}
+                      onChange={(e) => setNewDoneModules(Number(e.target.value))}
+                      className="bg-surface-container-high border-none rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:bg-surface-container-lowest transition-all outline-none text-on-surface"
+                    />
+                  </div>
                 </div>
               )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">开始日期</label>
+                  <input 
+                    type="date" 
+                    value={newStartDate}
+                    onChange={(e) => setNewStartDate(e.target.value)}
+                    className="bg-surface-container-high border-none rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:bg-surface-container-lowest transition-all outline-none text-on-surface"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">结束 (死线)</label>
+                  <input 
+                    type="date" 
+                    value={newEndDate}
+                    onChange={(e) => setNewEndDate(e.target.value)}
+                    className="bg-surface-container-high border-none rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:bg-surface-container-lowest transition-all outline-none text-on-surface"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-4 mt-10 justify-end">
