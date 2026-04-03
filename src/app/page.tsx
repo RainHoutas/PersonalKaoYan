@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Pencil, ChevronRight } from 'lucide-react';
+import { Pencil, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Chapter {
   id: string;
@@ -39,6 +39,12 @@ interface DashboardData {
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // 展开折叠状态
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
 
   // 编辑弹窗状态
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
@@ -280,15 +286,15 @@ export default function Dashboard() {
                   {/* 首要元素：当前子任务 */}
                   <div>
                     <span className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-1">子任务进度</span>
-                    <div className="font-headline text-4xl font-black text-primary drop-shadow-md leading-none tracking-tighter">
-                      {activeSubject.progressPercent || 0}<span className="text-lg text-primary/70 font-bold ml-0.5">%</span>
+                    <div className="font-headline text-3xl font-black text-primary drop-shadow-md leading-none tracking-tight whitespace-nowrap">
+                      {activeSubject.progressPercent || 0}<span className="text-base text-primary/70 font-bold ml-0.5">%</span>
                     </div>
                   </div>
                   
                   {!isEnglish && activeSubject.totalModules > 0 && (
                     <div>
                       <span className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-1">当前目标配速</span>
-                      <div className="font-bold text-primary text-xl drop-shadow-sm leading-none">
+                      <div className="font-bold text-primary text-lg drop-shadow-sm leading-none whitespace-nowrap">
                         {activeSubject.suggestedPace || 0} <span className="text-[10px] font-medium opacity-70">模块/天</span>
                       </div>
                     </div>
@@ -325,8 +331,12 @@ export default function Dashboard() {
               </div>
 
               {/* 分组内科目卡片 */}
-              <div className="bg-surface-container-lowest rounded-[20px] border border-outline-variant/10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden divide-y divide-outline-variant/10 relative z-20 group-hover/section:border-primary/20 group-hover/section:shadow-primary/5 transition-all duration-500 bg-white">
-                {group.subjects.map((sub) => (
+              <div className="bg-surface-container-lowest rounded-[20px] border border-outline-variant/10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col relative z-20 group-hover/section:border-primary/20 group-hover/section:shadow-primary/5 transition-all duration-500 bg-white">
+                {(() => {
+                  const otherSubjects = group.subjects.filter(s => s.id !== activeSubject.id);
+                  const isExpanded = expandedGroups[group.id] || false;
+                  
+                  const renderSub = (sub: Subject, isActive: boolean) => (
                   <div
                     key={sub.id}
                     className={`flex items-center gap-4 px-5 py-4 transition-colors group ${
@@ -365,22 +375,28 @@ export default function Dashboard() {
                         )}
                       </div>
                       {/* 进度条 */}
-                      <div className="relative h-4 w-full bg-surface-container rounded-[12px] overflow-hidden shrink-0 mt-1 isolate">
+                      <div className="relative h-5 w-full bg-teal-500/5 rounded-[12px] overflow-hidden shrink-0 mt-3 isolate border border-teal-500/10">
+                        {/* 进度刻度 */}
+                        <div className="absolute inset-0 flex justify-between px-4 w-full pointer-events-none">
+                          {Array.from({length: 9}).map((_, i) => (
+                             <div key={i} className="h-full w-px bg-teal-500/10"></div>
+                          ))}
+                        </div>
                         <div
                           className={`absolute top-0 left-0 h-full rounded-[12px] transition-all duration-700 ease-out z-0 ${
-                            sub.isWaiting ? 'bg-outline-variant' : 'bg-gradient-to-r from-primary to-primary-container'
+                            sub.isWaiting ? 'bg-outline-variant/30' : 'bg-[#0D9488]/80'
                           }`}
                           style={{ width: `${sub.progressPercent}%` }}
                         />
                         {/* 进度文字（底色层）：在未完成区域显示的文字颜色 */}
-                        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold font-headline select-none z-10 text-on-surface-variant/70 pointer-events-none">
+                        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold font-headline select-none z-10 text-teal-800/40 pointer-events-none tracking-widest">
                           {sub.subjectType === 'PROFESSIONAL' 
                             ? `${sub.doneModules} / ${sub.totalModules} 进度` 
                             : `${sub.totalWords} / 5666 单词`}
                         </div>
                         {/* 进度文字（高亮层）：仅在进度条已填充区域使用 clip-path 裁切显示 */}
                         <div 
-                          className="absolute inset-0 flex items-center justify-center text-[10px] font-bold font-headline select-none z-20 text-white drop-shadow-sm pointer-events-none transition-all duration-700 ease-out"
+                          className="absolute inset-0 flex items-center justify-center text-[10px] font-bold font-headline select-none z-20 text-white/95 pointer-events-none transition-all duration-700 ease-out tracking-widest"
                           style={{ clipPath: `inset(0 ${100 - (sub.progressPercent || 0)}% 0 0)` }}
                         >
                           {sub.subjectType === 'PROFESSIONAL' 
@@ -388,6 +404,41 @@ export default function Dashboard() {
                             : `${sub.totalWords} / 5666 单词`}
                         </div>
                       </div>
+
+                      {/* 时间进度条：悬挂在主业务进度条正下方 */}
+                      {isActive && sub.startDate && sub.endDate && (() => {
+                        const sT = new Date(sub.startDate).getTime();
+                        const eT = new Date(sub.endDate).getTime();
+                        const nT = new Date().getTime();
+                        if (eT > sT) {
+                           const timePct = Math.min(100, Math.max(0, ((nT - sT) / (eT - sT)) * 100));
+                           return (
+                             <div className="relative h-5 w-full bg-teal-500/5 rounded-[12px] overflow-hidden shrink-0 mt-1.5 isolate border border-teal-500/10" title={`时间流逝 ${timePct.toFixed(1)}%`}>
+                               {/* 进度刻度 */}
+                               <div className="absolute inset-0 flex justify-between px-4 w-full pointer-events-none">
+                                 {Array.from({length: 9}).map((_, i) => (
+                                    <div key={i} className="h-full w-px bg-teal-500/10"></div>
+                                 ))}
+                               </div>
+                               {/* 时间流逝填充（极其柔和的青绿） */}
+                               <div className="absolute top-0 left-0 h-full bg-[#0D9488]/30 rounded-[12px] transition-all duration-700 ease-out z-0" style={{ width: `${timePct}%` }} />
+                               
+                               {/* 进度文字（底色层） */}
+                               <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold font-headline select-none z-10 text-teal-800/40 pointer-events-none tracking-widest">
+                                 历时消耗 {timePct.toFixed(0)}%
+                               </div>
+                               {/* 进度文字（高亮层） */}
+                               <div 
+                                 className="absolute inset-0 flex items-center justify-center text-[10px] font-bold font-headline select-none z-20 text-teal-900/80 pointer-events-none transition-all duration-700 ease-out tracking-widest"
+                                 style={{ clipPath: `inset(0 ${100 - timePct}% 0 0)` }}
+                               >
+                                 历时消耗 {timePct.toFixed(0)}%
+                               </div>
+                             </div>
+                           );
+                        }
+                        return null;
+                      })()}
 
                       {/* 如果存在章节细分，展示分段进度排布 */}
                       {sub.chapters && sub.chapters.length > 0 && (
@@ -429,7 +480,7 @@ export default function Dashboard() {
 
                     {/* 右侧数据 */}
                     <div className="flex items-center gap-3 shrink-0">
-                      <div className="text-right">
+                      <div className="text-right whitespace-nowrap">
                         <div className="font-headline text-lg font-extrabold text-primary leading-none">
                           {sub.progressPercent}<span className="text-[10px] ml-0.5 text-primary/60 font-bold">%</span>
                         </div>
@@ -454,7 +505,40 @@ export default function Dashboard() {
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                  
+                  return (
+                    <div className="divide-y divide-outline-variant/10 flex flex-col w-full rounded-[20px] overflow-hidden">
+                      {/* 当前首要任务 */}
+                      <div className="w-full">
+                        {renderSub(activeSubject, true)}
+                      </div>
+                      
+                      {/* 打开/折叠按钮 */}
+                      {otherSubjects.length > 0 && (
+                        <div className="w-full transition-all duration-300 bg-surface-container-lowest hover:bg-surface-container-low/40 relative z-10 box-border overflow-hidden">
+                          <button 
+                            onClick={() => toggleGroup(group.id)} 
+                            className="w-full py-3 flex items-center justify-center gap-2 text-[11px] font-bold text-outline hover:text-primary transition-colors group/toggle outline-none"
+                          >
+                            {isExpanded ? (
+                              <>隐藏其余 <span className="font-extrabold text-xs">{otherSubjects.length}</span> 个科目模块 <ChevronUp size={14} className="group-hover/toggle:-translate-y-0.5 transition-transform" /></>
+                            ) : (
+                              <>显示其余 <span className="font-extrabold text-xs">{otherSubjects.length}</span> 个未进行的任务 <ChevronDown size={14} className="group-hover/toggle:translate-y-0.5 transition-transform" /></>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* 其余任务列表 */}
+                      {isExpanded && otherSubjects.length > 0 && (
+                        <div className="divide-y divide-outline-variant/10 border-t border-outline-variant/10 bg-surface-container-lowest/40 flex flex-col transform-gpu transition-all duration-300 z-0 relative">
+                          {otherSubjects.map(s => renderSub(s, false))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );
